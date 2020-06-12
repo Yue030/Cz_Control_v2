@@ -16,4 +16,5 @@ Resource則是放置圖片等等的資源
 Servers為主要檔案
 由ServerThead來負責處理使用者Socket等等的資訊
 
-# 下載到自己電腦 git clone https://github.com/Yue030/Cz_Control_v2
+# 下載到自己電腦 
+# git clone https://github.com/Yue030/Cz_Control_v2
