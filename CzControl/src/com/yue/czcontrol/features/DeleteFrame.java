@@ -7,12 +7,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -26,12 +30,17 @@ import com.yue.czcontrol.MainFrame;
 import com.yue.czcontrol.exception.NameNotFoundException;
 import com.yue.czcontrol.exception.UploadFailedException;
 import com.yue.czcontrol.utils.BoxInit;
+import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runnable{
+public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
 	private static final long serialVersionUID = 1L;
-
-	MainFrame mf  = new MainFrame();
+	
+	private String socketName; 
+	
+	private PrintWriter out = null;
+	
+	MainFrame mf;
 	
 	private Connection conn = null;
 	private PreparedStatement psmt = null;
@@ -48,13 +57,14 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 	
 	private JComboBox<String> idBox = new JComboBox<String>();
 	
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
+	
 	/**
 	 * Set timeLabel Text every second.
 	 */
 	@Override
 	public void run() {
 		while (true) {
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
@@ -92,6 +102,24 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	@Override
+	public void addData(String msg) throws UploadFailedException {
+		
+	}
+
+
+	@Override
+	public void initData() {
+		
+	}
+
+
+	@Override
+	public void message(String msg) {
+		out.println(msg);
+		out.flush();
 	}
 	
 	
@@ -147,6 +175,7 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 					
 					if(psmt.executeUpdate() > 0) {//if get update > 0
 						JOptionPane.showMessageDialog(null, "\u522a\u9664 \u7de8\u865f[" + id + "] \u5df2\u6210\u529f");
+						message(dateFormatter.format(new Date())+ "\t" + handler + "-" + socketName + "\u70ba\u7de8\u865f [" + id + "] \u8acb\u5047 ~[console]");
 						isOK = true;
 					} else {
 						throw new UploadFailedException("Data is Upload failed.");
@@ -210,11 +239,19 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 	 * @param userName The user Name
 	 * @param user user Account
 	 * @param password user Password
+	 * @param socket The user's socket
 	 * @throws NameNotFoundException When the NameNotFound
+	 * @throws IOException IOException
 	 * 
 	 */
-	public DeleteFrame(String userName, String user, String password) throws NameNotFoundException {
+	public DeleteFrame(String userName, String user, String password, Socket socket) throws NameNotFoundException, IOException {
 		this.handler = userName;
+		this.socketName = socket.getRemoteSocketAddress().toString();
+		
+		out = new PrintWriter(socket.getOutputStream());
+		
+		mf = new MainFrame(socket);
+		
 		try {
 			this.conn = com.yue.czcontrol.LoginFrame.initDB(this.conn);
 		} catch(ClassNotFoundException e) {
@@ -288,6 +325,8 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 						setVisible(false);
 						mf.setUser(user);
 						mf.setPassword(password);
+						mf.setSocket(socket);
+						mf.setSocketName(socket);
 						mf.init();
 						Thread thread = new Thread(mf);
 						thread.start();
@@ -312,6 +351,8 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 				setVisible(false);
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();
@@ -326,4 +367,7 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit,  Runna
 		idBox.setBounds(253, 237, 436, 73);
 		contentPane.add(idBox);
 	}
+
+
+	
 }

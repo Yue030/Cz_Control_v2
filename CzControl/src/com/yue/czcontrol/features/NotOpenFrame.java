@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.Socket;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -24,8 +25,9 @@ public class NotOpenFrame extends JFrame {
 	 * Create a Frame
 	 * @param user user Account
 	 * @param password user Passoword
+	 * @param socket The user's socket
 	 */
-	public NotOpenFrame(String user, String password) {
+	public NotOpenFrame(String user, String password, Socket socket) {
 		//JFrame init
 		setTitle("\u5C1A\u672A\u958B\u555F");
 		setResizable(false);		
@@ -64,9 +66,11 @@ public class NotOpenFrame extends JFrame {
 		error.addMouseListener(new MouseAdapter() {//If get clicked Event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				MainFrame mf = new MainFrame();
+				MainFrame mf = new MainFrame(socket);
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();

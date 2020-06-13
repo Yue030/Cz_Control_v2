@@ -11,12 +11,15 @@ import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,9 +46,11 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.yue.czcontrol.MainFrame;
+import com.yue.czcontrol.exception.UploadFailedException;
+import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class SelectFrame extends JFrame implements TimeProperty, Runnable{
+public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, Runnable{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -55,9 +60,15 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 	private JPanel contentPane;
 	private JTable table;
 	
-	MainFrame mf = new MainFrame();
+	private String socketName;
+	
+	private PrintWriter out = null;
+	
+	MainFrame mf;
 	
 	private JLabel timeLabel = new JLabel("");
+	
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);;
 	
 	/**
 	 * Set timeLabel Text every second.
@@ -65,7 +76,6 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 	@Override
 	public void run() {
 		while (true) {
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
@@ -74,6 +84,22 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 			}
 		}
 
+	}
+	
+	@Override
+	public void addData(String msg) throws UploadFailedException {
+		
+	}
+
+	@Override
+	public void initData() {
+		
+	}
+
+	@Override
+	public void message(String msg) {
+		out.println(msg);
+		out.flush();
 	}
 	
 	/**
@@ -123,8 +149,16 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 	 * @param name The user Name
 	 * @param user user Account
 	 * @param password user Password
+	 * @param socket The user's socket
+	 * @throws IOException IOException
 	 */
-	public SelectFrame(String name, String user, String password) {
+	public SelectFrame(String name, String user, String password, Socket socket) throws IOException {
+		this.socketName = socket.getRemoteSocketAddress().toString();
+		
+		out = new PrintWriter(socket.getOutputStream());
+		
+		mf = new MainFrame(socket);
+		
 		try {
 			this.conn = com.yue.czcontrol.LoginFrame.initDB(this.conn);
 		} catch(ClassNotFoundException e) {
@@ -186,6 +220,9 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 				
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
+				
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();
@@ -245,6 +282,7 @@ public class SelectFrame extends JFrame implements TimeProperty, Runnable{
 		            System.out.println("Rows:" + table.getRowCount());
 		            System.out.println("Done");
 		            JOptionPane.showMessageDialog(null, "pdf\u6a94\u6848\u5df2\u8f38\u51fa\u5b8c\u7562");
+		            message(dateFormatter.format(new Date())+ "\t" + name + "-" + socketName + " \u5df2\u751f\u6210\u6210\u54e1PDF\u6a94 ~[console]");
 		        } catch (DocumentException ex) {
 		            ex.printStackTrace();
 		        } catch (FileNotFoundException ex) {

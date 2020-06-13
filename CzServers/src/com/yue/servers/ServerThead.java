@@ -11,9 +11,21 @@ import java.net.Socket;
  */
 public class ServerThead extends Servers implements Runnable{
 
-    Socket socket;
+	private static final long serialVersionUID = 1L;
+	
+	Socket socket;
     String socketName;
+    String name;
     
+    /**
+     * System version
+     */
+    public static final String VERSION = "v2-34293";
+    
+    /**
+     * Constructor 
+     * @param socket Socket
+     */
     public ServerThead(Socket socket){
         this.socket = socket;
     }
@@ -23,21 +35,52 @@ public class ServerThead extends Servers implements Runnable{
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             socketName = socket.getRemoteSocketAddress().toString();
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+            out.println(VERSION);
+            out.flush();
             refreshIP();
-            console.append("IP:" + socketName + "\t\u5df2\u52a0\u5165\u804a\u5929\n");
+            String line = reader.readLine();
+            if(line.endsWith(" ~[version]")) {
+            	System.out.println(line);
+            	String[] versionIn = line.split("~");
+            	System.out.println(versionIn[0]);
+            	if(!VERSION.equals(versionIn[0].strip())) {
+            		out.println("shutdown");
+            		out.flush();
+            		sockets.remove(socket);
+            		socket.close();
+            		refreshIP();
+            	} else {
+            		out.println("ok");
+            		out.flush();
+            	}
+            } else {
+            	sockets.remove(socket);
+        		socket.close();
+        		refreshIP();
+            }
+            logArea.append("IP:" + socketName + "\t\u5df2\u958b\u555f\u7ba1\u7406\u7cfb\u7d71\n");
             boolean flag = true;
             while (flag){
                 //Connecting
-                String line = reader.readLine();
+                line = reader.readLine();
                 //If client exit, disconnect
                 if (line == null){
                     flag = false;
                     continue;
                 }
-                System.out.println("IP:" + socketName + "\t" + line + "\n");
-                console.append("IP:" + socketName + "\t" + line + "\n");
-                //Output the message
-                print(line);
+                
+                if(line.endsWith(" ~[console]")) {
+                	System.out.println(line);
+                	String[] msg = line.split("~");
+                	System.out.println(msg[0]);
+                	logArea.append(msg[0] + "\n");
+                } else {
+                	System.out.println("IP:" + socketName + "\t" + line + "\n");
+                    console.append("IP:" + socketName + "\t" + line + "\n");
+                    //Output the message
+                    print(line);
+                }
             }
             
             closeConnect();
@@ -71,11 +114,12 @@ public class ServerThead extends Servers implements Runnable{
      * @throws IOException
      */
     public void closeConnect() throws IOException {
-    	console.append("IP:" + socketName + "\t\u5df2\u9000\u51fa\u804a\u5929\n");
+    	logArea.append("IP:" + socketName + "\t\u5df2\u95dc\u9589\u7ba1\u7406\u7cfb\u7d71\n");
         //Remove sockets
         synchronized (sockets){
             sockets.remove(socket);
         }
+        
         socket.close();
     }
     

@@ -9,7 +9,7 @@ public interface VersionProperty {
 	/**
 	 * Release Mouth and Day
 	 */
-	static final int DATE_MD = 612;
+	static final int DATE_MD = 613;
 	
 	/**
 	 * Release on AM(3) or PM(7)
@@ -19,7 +19,7 @@ public interface VersionProperty {
 	/**
 	 * Release Time
 	 */
-	static final int RELEASE_TIME = 916;
+	static final int RELEASE_TIME = 830;
 	
 	/**
 	 * Release count of day
@@ -29,7 +29,7 @@ public interface VersionProperty {
 	/**
 	 * Release Date
 	 */
-	static final String RELEASE_DATE = "2020/06/12";
+	static final String RELEASE_DATE = "2020/06/13";
 	
 	/**
 	 * get Version

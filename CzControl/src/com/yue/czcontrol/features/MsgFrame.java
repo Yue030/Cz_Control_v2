@@ -38,8 +38,8 @@ import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
 public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
-
-	MainFrame mf = new MainFrame();
+	
+	MainFrame mf;
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -52,9 +52,8 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	private Connection conn = null;
 	private ResultSet rs = null;
 	
-	private Socket socket = new Socket("27.147.3.116",5200);
-	private PrintWriter out = new PrintWriter(socket.getOutputStream());
-	private BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	private PrintWriter out = null;
+	private BufferedReader in = null;
 	
 	private JScrollPane scrollPane = new JScrollPane();
 	private JTextArea msgArea = new JTextArea();
@@ -135,11 +134,17 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	 * @param userName user name
 	 * @param user userAccount
 	 * @param password user Password
+	 * @param socket The user's socket
 	 * @throws IOException IOException
 	 * @throws UnknownHostException if host is unknow
 	 * @throws ConnectException If connect failed
 	 */
-	public MsgFrame(String userName, String user, String password) throws IOException, UnknownHostException, ConnectException{
+	public MsgFrame(String userName, String user, String password, Socket socket) throws IOException, UnknownHostException, ConnectException{
+		out = new PrintWriter(socket.getOutputStream());
+		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+		mf = new MainFrame(socket);
+		
 		try {
 			this.conn = com.yue.czcontrol.LoginFrame.initDB(this.conn);
 		} catch(ClassNotFoundException e) {
@@ -235,7 +240,6 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				addData_key(e.getKeyCode(), userName);
 			}
 
 			@Override
@@ -245,7 +249,6 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				addData_key(e.getKeyCode(), userName);
 			}
 			
 		});
@@ -261,6 +264,8 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 				setVisible(false);
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();

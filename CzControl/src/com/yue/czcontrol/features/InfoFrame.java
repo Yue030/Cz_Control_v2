@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -20,8 +21,8 @@ import com.yue.czcontrol.utils.VersionProperty;
 public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, Runnable{
 
 	private static final long serialVersionUID = 1L;
-
-	MainFrame mf = new MainFrame();
+	
+	MainFrame mf;
 	
 	private JPanel contentPane;
 	
@@ -60,8 +61,11 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 	 * @param userName The user Name
 	 * @param user user Account
 	 * @param password user Password
+	 * @param socket The user's socket
 	 */
-	public InfoFrame(String userName, String user, String password) {
+	public InfoFrame(String userName, String user, String password, Socket socket) {
+		mf = new MainFrame(socket);
+		
 		//JFrame init
 		setTitle("Cz\u7ba1\u7406\u7cfb\u7d71-info");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -94,8 +98,6 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 		//userLabel init
 		JLabel userLabel = new JLabel("\u76ee\u524d\u4f7f\u7528\u5e33\u865f: " + userName);
 		userLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		
-		
 		userLabel.setFont(new Font("\u8cc7\u6599\u4e0d\u5b8c\u6574", Font.PLAIN, 20));
 		userLabel.setBounds(478, 87, 285, 43);
 		panel.add(userLabel);
@@ -111,6 +113,9 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 				
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
+				
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();
@@ -126,13 +131,13 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 		contentPane.add(author);
 		
 		//versionLabel init
-		JLabel version = new JLabel("版本: " + getVersion());
+		JLabel version = new JLabel("\u7248\u672c: " + getVersion());
 		version.setFont(new Font("Dialog", Font.PLAIN, 40));
 		version.setBounds(15, 244, 505, 79);
 		contentPane.add(version);
 		
 		//dateLabel init
-		JLabel date = new JLabel("釋出日期: " + getReleaseDate());
+		JLabel date = new JLabel("\u91cb\u51fa\u65e5\u671f: " + getReleaseDate());
 		date.setFont(new Font("Dialog", Font.PLAIN, 40));
 		date.setBounds(15, 337, 393, 79);
 		contentPane.add(date);

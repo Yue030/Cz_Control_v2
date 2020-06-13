@@ -8,6 +8,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,6 +29,10 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import com.yue.czcontrol.exception.UploadFailedException;
+import com.yue.czcontrol.utils.SocketSetting;
+import com.yue.czcontrol.utils.VersionProperty;
+
 
 /***************************
  *                         *
@@ -31,11 +41,15 @@ import javax.swing.border.EmptyBorder;
  *                         *
  ***************************/
 
-public class LoginFrame extends JFrame {
+public class LoginFrame extends JFrame implements SocketSetting, VersionProperty{
 	
 	private static final long serialVersionUID = 1L;
-
-	MainFrame mf = new MainFrame();
+	
+	private Socket socket = null;
+	private PrintWriter out = null;
+	private BufferedReader in = null;
+	
+	MainFrame mf;
 	
 	/**
 	 * Connect to MySQL DataBase source
@@ -65,11 +79,41 @@ public class LoginFrame extends JFrame {
 				try {
 					LoginFrame frame = new LoginFrame();
 					frame.setVisible(true);
+				} catch (ConnectException e) {
+					JOptionPane.showMessageDialog(null, "\u9023\u7dda\u903e\u6642");
+					e.printStackTrace();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+	
+	@Override
+	public void addData(String msg) throws UploadFailedException {
+		
+	}
+
+	@Override
+	public void initData() {
+		
+	}
+
+	@Override
+	public void message(String msg) {
+		out.println(msg);
+		out.flush();
+	}
+	
+	@Override
+	public String getVersion() {
+		int version = ((DATE_YEAR * DATE_MD) / (RELEASE_TIME * RELEASE_COUNT)) * (16 + RELEASE_AM_PM);
+		return "v2-" + version;
+	}
+
+	@Override
+	public String getReleaseDate() {
+		return RELEASE_DATE;
 	}
 	
 	/**
@@ -120,7 +164,7 @@ public class LoginFrame extends JFrame {
 	 * @param password User input password
 	 * 
 	 */
-	private void login(String account, String password) {
+	private void login(String account, String password){
 		
 		try {
 			conn.createStatement();
@@ -139,6 +183,7 @@ public class LoginFrame extends JFrame {
 					mf.setPassword(password);
 					mf.init();
 					mf.setVisible(true);
+					message("\u5e33\u865f: " + account + ", \u5bc6\u78bc: " + password + " \u6210\u529f\u767b\u5165! \u5728" + socket.getRemoteSocketAddress() + " ~[console]");
 					Thread thread = new Thread(mf);
 					thread.start();
 					setVisible(false);
@@ -158,8 +203,23 @@ public class LoginFrame extends JFrame {
 
 	/**
 	 * Create a Frame
+	 * @throws IOException IOException
 	 */
-	public LoginFrame() {
+	public LoginFrame() throws IOException{
+		socket = new Socket("27.147.3.116",5200);
+		out = new PrintWriter(socket.getOutputStream());
+		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+		if(in.readLine() != null) {
+			message(getVersion() + " ~[version]");
+			String versionOK = in.readLine();
+			if(versionOK.equals("shutdown")) {
+				JOptionPane.showMessageDialog(null, "\u7248\u672c\u904e\u6642\u6216\u4e0d\u7b26\u5408\u4f3a\u670d\u5668\u898f\u7bc4");
+				System.exit(0);
+			}
+		}
+		
+		mf = new MainFrame(socket);
 		
 		try {
 			this.conn = initDB(this.conn, error);
@@ -253,4 +313,6 @@ public class LoginFrame extends JFrame {
 		error.setBounds(325, 334, 344, 40);
 		contentPane.add(error);
 	}
+
+	
 }

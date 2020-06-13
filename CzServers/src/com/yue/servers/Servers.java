@@ -37,7 +37,12 @@ public class Servers extends JFrame {
 	protected JLabel ipTitle = new JLabel("\u4F7F\u7528\u8005IP");
 	protected JButton sudoExit = new JButton("\u5F37\u5236\u65B7\u7DDA");
 	
+	protected JScrollPane logScroll = new JScrollPane();
+	protected static JTextArea logArea = new JTextArea();
+	protected JLabel log = new JLabel("\u65E5\u8A8C");
+	
 	protected static List<Socket> sockets = new Vector<>();
+	protected static List<String> user = new Vector<>();
 
 	private JPanel contentPane;
 
@@ -84,12 +89,12 @@ public class Servers extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		console.setFont(new Font("Dialog", Font.PLAIN, 15));
+		console.setFont(new Font("Dialog", Font.PLAIN, 12));
 		console.setEditable(false);
 		consoleScroll.setViewportView(console);
 		
 		consoleScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		consoleScroll.setBounds(10, 47, 722, 261);
+		consoleScroll.setBounds(10, 47, 369, 261);
 		contentPane.add(consoleScroll);
 		
 		ip.setFont(new Font("Dialog", Font.PLAIN, 15));
@@ -103,7 +108,7 @@ public class Servers extends JFrame {
 		
 		title.setHorizontalAlignment(SwingConstants.CENTER);
 		title.setFont(new Font("Dialog", Font.PLAIN, 35));
-		title.setBounds(10, 0, 722, 37);
+		title.setBounds(10, 0, 369, 37);
 		contentPane.add(title);
 		
 		ipTitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -131,5 +136,19 @@ public class Servers extends JFrame {
 			}
 		});
 		contentPane.add(sudoExit);
+		
+		
+		logScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		logScroll.setBounds(426, 47, 369, 261);
+		contentPane.add(logScroll);
+		
+		logArea.setFont(new Font("Dialog", Font.PLAIN, 12));
+		logArea.setEditable(false);
+		logScroll.setViewportView(logArea);
+		
+		log.setHorizontalAlignment(SwingConstants.CENTER);
+		log.setFont(new Font("Dialog", Font.PLAIN, 35));
+		log.setBounds(426, 0, 369, 37);
+		contentPane.add(log);
 	}
 }

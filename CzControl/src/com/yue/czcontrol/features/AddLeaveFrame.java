@@ -7,12 +7,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
@@ -27,13 +31,18 @@ import com.yue.czcontrol.MainFrame;
 import com.yue.czcontrol.exception.NameNotFoundException;
 import com.yue.czcontrol.exception.UploadFailedException;
 import com.yue.czcontrol.utils.BoxInit;
+import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Runnable{
+public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
 
 	private static final long serialVersionUID = 1L;
-
-	MainFrame mf = new MainFrame();
+	private String socketName; 
+	private PrintWriter out = null;
+	
+	private String userName;
+	
+	MainFrame mf;
 	
 	private Connection conn = null;
 	private PreparedStatement psmt = null;
@@ -44,13 +53,14 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Runn
 	
 	private JComboBox<String> idBox = new JComboBox<String>();
 	
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
+	
 	/**
 	 * Set timeLabel Text every second.
 	 */
 	@Override
 	public void run() {
 		while (true) {
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
@@ -113,6 +123,7 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Runn
 				
 				if(psmt.executeUpdate() > 0) {//if add success
 					JOptionPane.showMessageDialog(null, "\u4f60\u5df2\u6210\u529f\u70ba\u7de8\u865f [" + lid + "] \u8acb\u5047");
+					message(dateFormatter.format(new Date())+ "\t" + userName + "-" + socketName + "\u70ba\u7de8\u865f [" + lid + "] \u8acb\u5047 ~[console]");
 				} else {//if not
 					throw new UploadFailedException("Data is Upload failed.");
 				}
@@ -161,15 +172,41 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Runn
 		}
 		return null;
 	}
+	
+	@Override
+	public void addData(String msg) throws UploadFailedException {
+		
+	}
+
+	@Override
+	public void initData() {
+		
+	}
+
+	@Override
+	public void message(String msg) {
+		out.println(msg);
+		out.flush();
+	}
 
 	/**
 	 * create a Frame
 	 * @param userName user's Name
 	 * @param user user's Account
 	 * @param password user's Password
+	 * @param socket The user's socket
 	 * @throws NameNotFoundException When the NameNotFound
+	 * @throws IOException IOException
 	 */
-	public AddLeaveFrame(String userName, String user, String password) throws NameNotFoundException {
+	public AddLeaveFrame(String userName, String user, String password, Socket socket) throws NameNotFoundException, IOException {
+		
+		this.userName = userName;
+		this.socketName = socket.getRemoteSocketAddress().toString();
+		
+		out = new PrintWriter(socket.getOutputStream());
+		
+		mf = new MainFrame(socket);
+		
 		try {
 			this.conn = com.yue.czcontrol.LoginFrame.initDB(this.conn);
 		} catch(ClassNotFoundException e) {
@@ -289,6 +326,8 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Runn
 				setVisible(false);
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();

@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,8 +34,8 @@ import com.yue.czcontrol.exception.NameNotFoundException;
 public class LeaveFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
-
-	MainFrame mf = new MainFrame();
+	
+	MainFrame mf;
 	
 	private Connection conn = null;
 	private PreparedStatement psmt = null;
@@ -144,8 +146,12 @@ public class LeaveFrame extends JFrame{
 	 * @param userName user's name
 	 * @param user user's account
 	 * @param password user's password
+	 * @param socket The user's socket
 	 */
-	public LeaveFrame(String userName, String user, String password) {
+	public LeaveFrame(String userName, String user, String password, Socket socket) {
+		
+		mf = new MainFrame(socket);
+		
 		try {
 			this.conn = com.yue.czcontrol.LoginFrame.initDB(this.conn);
 		} catch(ClassNotFoundException e) {
@@ -241,12 +247,14 @@ public class LeaveFrame extends JFrame{
 				setVisible(false);
 				AddLeaveFrame frame;
 				try {
-					frame = new AddLeaveFrame(userName, user, password);
+					frame = new AddLeaveFrame(userName, user, password, socket);
 					Thread thread = new Thread(frame);
 					thread.start();
 					frame.setVisible(true);
 				} catch (NameNotFoundException nne) {
 					nne.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
 			
@@ -263,6 +271,8 @@ public class LeaveFrame extends JFrame{
 				setVisible(false);
 				mf.setUser(user);
 				mf.setPassword(password);
+				mf.setSocket(socket);
+				mf.setSocketName(socket);
 				mf.init();
 				Thread thread = new Thread(mf);
 				thread.start();

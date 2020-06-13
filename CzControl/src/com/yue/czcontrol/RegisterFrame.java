@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -199,7 +200,11 @@ public class RegisterFrame extends JFrame {
 				if (isOK) {
 					JOptionPane.showMessageDialog(null, "\u8a3b\u518a\u5e33\u865f\u6210\u529f");
 					setVisible(false);
-					new LoginFrame().setVisible(true);;
+					try {
+						new LoginFrame().setVisible(true);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					};
 				}
 			}
 		});
@@ -260,7 +265,11 @@ public class RegisterFrame extends JFrame {
 		loginLabel.addMouseListener(new MouseAdapter() {//If get clicked Event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				new LoginFrame().setVisible(true);
+				try {
+					new LoginFrame().setVisible(true);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		contentPane.add(loginLabel);

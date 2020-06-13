@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,7 +34,10 @@ import com.yue.czcontrol.features.UpdateFrame;
 import com.yue.czcontrol.utils.TimeProperty;
 
 public class MainFrame extends JFrame implements TimeProperty, Runnable {
-
+	
+	private Socket socket;
+	private String socketName;
+	
 	private static final long serialVersionUID = 1L;
 	
 	private Connection conn = null;
@@ -62,6 +66,23 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 			}
 		}
 
+	}
+	
+	
+	public Socket getSocket() {
+		return this.socket;
+	}
+	
+	public void setSocket(Socket socket) {
+		this.socket = socket;
+	}
+	
+	public void setSocketName(Socket socket) {
+		this.socketName = socket.getRemoteSocketAddress().toString();
+	}
+	
+	public String getSocketName() {
+		return this.socketName;
 	}
 	
 	/**
@@ -147,8 +168,13 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 
 	/**
 	 * Create a Frame
+	 * @param socket Socket
 	 */
-	public MainFrame() {
+	public MainFrame(Socket socket){
+		
+		this.socket = socket;
+		this.socketName = socket.getRemoteSocketAddress().toString();
+		
 		// JFrame init
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 787, 503);
@@ -194,10 +220,15 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		viewPanel.addMouseListener(new MouseAdapter() {// If get clicked Event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				SelectFrame frame = new SelectFrame(userName, user, password);
-				Thread thread = new Thread(frame);
-				thread.start();
-				frame.setVisible(true);
+				SelectFrame frame;
+				try {
+					frame = new SelectFrame(userName, user, password, socket);
+					Thread thread = new Thread(frame);
+					thread.start();
+					frame.setVisible(true);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 
@@ -226,10 +257,16 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		addPanel.addMouseListener(new MouseAdapter() {// If get clicked event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				InsertFrame frame = new InsertFrame(userName, user, password);
-				Thread thread = new Thread(frame);
-				thread.start();
-				frame.setVisible(true);
+				InsertFrame frame;
+				try {
+					frame = new InsertFrame(userName, user, password, socket);
+					Thread thread = new Thread(frame);
+					thread.start();
+					frame.setVisible(true);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				
 			}
 		});
 
@@ -260,12 +297,14 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				setVisible(false);
 				UpdateFrame frame;
 				try {
-					frame = new UpdateFrame(userName, user, password);
+					frame = new UpdateFrame(userName, user, password, socket);
 					Thread thread = new Thread(frame);
 					thread.start();
 					frame.setVisible(true);
 				} catch (NameNotFoundException nne) {
 					nne.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
 		});
@@ -305,7 +344,11 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 
 					setVisible(false);
 					
-					new LoginFrame().setVisible(true);
+					try {
+						new LoginFrame().setVisible(true);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				} else {}
 			}
 		});
@@ -335,7 +378,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		infoPanel.addMouseListener(new MouseAdapter() {// If get clicked event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				InfoFrame frame = new InfoFrame(userName, user, password);
+				InfoFrame frame = new InfoFrame(userName, user, password, socket);
 				Thread thread = new Thread(frame);
 				thread.start();
 				frame.setVisible(true);
@@ -367,7 +410,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		leavePanel.addMouseListener(new MouseAdapter() {// If get clicked Event, run the override method
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
-				new LeaveFrame(userName, user, password).setVisible(true);
+				new LeaveFrame(userName, user, password, socket).setVisible(true);
 			}
 		});
 
@@ -398,12 +441,14 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				setVisible(false);
 				DeleteFrame frame;
 				try {
-					frame = new DeleteFrame(userName, user, password);
+					frame = new DeleteFrame(userName, user, password, socket);
 					Thread thread = new Thread(frame);
 					thread.start();
 					frame.setVisible(true);
 				} catch (NameNotFoundException nne) {
 					nne.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
 		});
@@ -434,7 +479,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				setVisible(false);
 				MsgFrame frame;
 				try {
-					frame = new MsgFrame(userName, user, password);
+					frame = new MsgFrame(userName, user, password, socket);
 					frame.setVisible(true);
 				} catch (ConnectException e1) {
 					setVisible(true);
