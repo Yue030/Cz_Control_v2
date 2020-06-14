@@ -60,8 +60,6 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 	private JPanel contentPane;
 	private JTable table;
 	
-	private String socketName;
-	
 	private PrintWriter out = null;
 	
 	MainFrame mf;
@@ -75,7 +73,7 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 	 */
 	@Override
 	public void run() {
-		while (true) {
+		while (true) {	
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
@@ -153,8 +151,6 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 	 * @throws IOException IOException
 	 */
 	public SelectFrame(String name, String user, String password, Socket socket) throws IOException {
-		this.socketName = socket.getRemoteSocketAddress().toString();
-		
 		out = new PrintWriter(socket.getOutputStream());
 		
 		mf = new MainFrame(socket);
@@ -282,7 +278,7 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 		            System.out.println("Rows:" + table.getRowCount());
 		            System.out.println("Done");
 		            JOptionPane.showMessageDialog(null, "pdf\u6a94\u6848\u5df2\u8f38\u51fa\u5b8c\u7562");
-		            message(dateFormatter.format(new Date())+ "\t" + name + "-" + socketName + " \u5df2\u751f\u6210\u6210\u54e1PDF\u6a94 ~[console]");
+		            message(dateFormatter.format(new Date())+ "\t" + name + " \u5df2\u751f\u6210\u6210\u54e1PDF\u6a94 ~[console]");
 		        } catch (DocumentException ex) {
 		            ex.printStackTrace();
 		        } catch (FileNotFoundException ex) {
@@ -337,8 +333,7 @@ class TableHeader extends PdfPageEventHelper {
             cell = new PdfPCell(Image.getInstance(total));
             table.addCell(cell);
             table.writeSelectedRows(0, -1, 34, 830, writer.getDirectContent());
-        }
-        catch(DocumentException de) {
+        } catch(DocumentException de) {
             throw new ExceptionConverter(de);
         }
     }

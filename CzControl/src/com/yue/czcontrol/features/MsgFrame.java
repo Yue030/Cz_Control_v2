@@ -40,7 +40,7 @@ import com.yue.czcontrol.utils.TimeProperty;
 public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	
 	MainFrame mf;
-	
+
 	private static final long serialVersionUID = 1L;
 	
 	private JPanel contentPane;
@@ -60,7 +60,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	private JFormattedTextField msgInput = new JFormattedTextField();
 	private JButton msgBtm = new JButton("\u50B3\u9001");
 	private JLabel back = new JLabel("\u9EDE\u6211\u56DE\u4E3B\u9078\u55AE");
-
+	
 	@Override
 	public void addData(String msg) throws UploadFailedException{
 		try {
@@ -140,6 +140,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	 * @throws ConnectException If connect failed
 	 */
 	public MsgFrame(String userName, String user, String password, Socket socket) throws IOException, UnknownHostException, ConnectException{
+		
 		out = new PrintWriter(socket.getOutputStream());
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		

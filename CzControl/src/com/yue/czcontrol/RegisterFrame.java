@@ -24,7 +24,7 @@ import javax.swing.border.EmptyBorder;
 
 import com.yue.czcontrol.exception.UploadFailedException;
 
-public class RegisterFrame extends JFrame {
+public class RegisterFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 
@@ -40,7 +40,7 @@ public class RegisterFrame extends JFrame {
 	private JFormattedTextField conPasInput = new JFormattedTextField();
 	
 	private boolean isOK;
-
+	
 	/**
 	 * Detect account is exist or not
 	 * @param account Input account
@@ -171,7 +171,7 @@ public class RegisterFrame extends JFrame {
 		
 		//RegisterBtm init
 		Button registerBtm = new Button("\u8A3B\u518A");
-		registerBtm.addActionListener(new ActionListener() {//�������辣嚗銵ethod
+		registerBtm.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				isOK = false;
 				//Get the input data
@@ -266,7 +266,8 @@ public class RegisterFrame extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
 				try {
-					new LoginFrame().setVisible(true);
+					LoginFrame frame = new LoginFrame();
+					frame.setVisible(true);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

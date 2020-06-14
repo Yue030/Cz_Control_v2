@@ -83,7 +83,7 @@ public class Servers extends JFrame {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 809, 530);
-		setTitle("\u5ba2\u6236\u7aef\u76e3\u63a7\u7cfb\u7d71");
+		setTitle("CzServer-v66101");
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);

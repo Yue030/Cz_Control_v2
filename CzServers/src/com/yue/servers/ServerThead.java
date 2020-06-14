@@ -15,12 +15,11 @@ public class ServerThead extends Servers implements Runnable{
 	
 	Socket socket;
     String socketName;
-    String name;
     
     /**
      * System version
      */
-    public static final String VERSION = "v2-34293";
+    public static final String VERSION = "v2-66101";
     
     /**
      * Constructor 
@@ -40,6 +39,7 @@ public class ServerThead extends Servers implements Runnable{
             out.flush();
             refreshIP();
             String line = reader.readLine();
+            
             if(line.endsWith(" ~[version]")) {
             	System.out.println(line);
             	String[] versionIn = line.split("~");
@@ -59,6 +59,7 @@ public class ServerThead extends Servers implements Runnable{
         		socket.close();
         		refreshIP();
             }
+            
             logArea.append("IP:" + socketName + "\t\u5df2\u958b\u555f\u7ba1\u7406\u7cfb\u7d71\n");
             boolean flag = true;
             while (flag){
@@ -73,14 +74,15 @@ public class ServerThead extends Servers implements Runnable{
                 if(line.endsWith(" ~[console]")) {
                 	System.out.println(line);
                 	String[] msg = line.split("~");
-                	System.out.println(msg[0]);
-                	logArea.append(msg[0] + "\n");
+                	System.out.println(msg[0] + socket.getRemoteSocketAddress().toString());
+                	logArea.append(msg[0] + "  " + socket.getRemoteSocketAddress().toString() + "\n");
                 } else {
                 	System.out.println("IP:" + socketName + "\t" + line + "\n");
                     console.append("IP:" + socketName + "\t" + line + "\n");
                     //Output the message
                     print(line);
                 }
+                refreshIP();
             }
             
             closeConnect();

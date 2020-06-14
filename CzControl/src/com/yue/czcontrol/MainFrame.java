@@ -61,8 +61,9 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
+			} catch (InterruptedException e) {
+				timeLabel.setText("Error");
+				e.printStackTrace();
 			}
 		}
 
@@ -210,7 +211,6 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
-
 		// viewPanel init
 		JPanel viewPanel = new JPanel();
 		viewPanel.setBackground(Color.LIGHT_GRAY);
@@ -345,7 +345,8 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 					setVisible(false);
 					
 					try {
-						new LoginFrame().setVisible(true);
+						LoginFrame frame = new LoginFrame();
+						frame.setVisible(true);;
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}

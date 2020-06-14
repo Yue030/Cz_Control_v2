@@ -183,7 +183,7 @@ public class LoginFrame extends JFrame implements SocketSetting, VersionProperty
 					mf.setPassword(password);
 					mf.init();
 					mf.setVisible(true);
-					message("\u5e33\u865f: " + account + ", \u5bc6\u78bc: " + password + " \u6210\u529f\u767b\u5165! \u5728" + socket.getRemoteSocketAddress() + " ~[console]");
+					message("\u5e33\u865f: " + account + ", \u5bc6\u78bc: " + password + " \u6210\u529f\u767b\u5165! \u5728 ~[console]");
 					Thread thread = new Thread(mf);
 					thread.start();
 					setVisible(false);

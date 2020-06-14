@@ -15,7 +15,7 @@ import javax.swing.border.EmptyBorder;
 
 import com.yue.czcontrol.MainFrame;
 
-public class NotOpenFrame extends JFrame {
+public class NotOpenFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 	

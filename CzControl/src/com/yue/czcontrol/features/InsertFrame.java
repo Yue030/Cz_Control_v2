@@ -34,8 +34,6 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 
 	private static final long serialVersionUID = 1L;
 	
-	private String socketName; 
-	
 	private PrintWriter out;
 	
 	MainFrame mf;
@@ -59,7 +57,6 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 	@Override
 	public void run() {
 		while (true) {
-			
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {
 				Thread.sleep(ONE_SECOND);
@@ -67,7 +64,6 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 				timeLabel.setText("Error!!!");
 			}
 		}
-
 	}
 	
 	/**
@@ -128,7 +124,7 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 			//Detect the data is add or not
 			if(psmt.executeUpdate() > 0) {
 				JOptionPane.showMessageDialog(null, "\u4f60\u5df2\u6210\u529f\u65b0\u589e\u4e00\u540d\u6210\u54e1");
-				message(dateFormatter.format(new Date())+ "\t" + handler + "-" + socketName + "\u65b0\u589e [" + name + "] \u6210\u54e1 ~[console]");
+				message(dateFormatter.format(new Date())+ "\t" + handler + "\u65b0\u589e [" + name + "] \u6210\u54e1 ~[console]");
 				nameInput.setText("");
 				rankInput.setText("");
 				activeInput.setText("");
@@ -166,7 +162,6 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 	 * @throws IOException IOException
 	 */
 	public InsertFrame(String userName, String user, String password, Socket socket) throws IOException { 
-		this.socketName = socket.getRemoteSocketAddress().toString();
 		
 		out = new PrintWriter(socket.getOutputStream());
 		

@@ -37,7 +37,6 @@ import com.yue.czcontrol.utils.TimeProperty;
 public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
 
 	private static final long serialVersionUID = 1L;
-	private String socketName; 
 	private PrintWriter out = null;
 	
 	private String userName;
@@ -123,7 +122,7 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Sock
 				
 				if(psmt.executeUpdate() > 0) {//if add success
 					JOptionPane.showMessageDialog(null, "\u4f60\u5df2\u6210\u529f\u70ba\u7de8\u865f [" + lid + "] \u8acb\u5047");
-					message(dateFormatter.format(new Date())+ "\t" + userName + "-" + socketName + "\u70ba\u7de8\u865f [" + lid + "] \u8acb\u5047 ~[console]");
+					message(dateFormatter.format(new Date())+ "\t" + userName + "\u70ba\u7de8\u865f [" + lid + "] \u8acb\u5047 ~[console]");
 				} else {//if not
 					throw new UploadFailedException("Data is Upload failed.");
 				}
@@ -201,7 +200,6 @@ public class AddLeaveFrame extends JFrame implements TimeProperty, BoxInit, Sock
 	public AddLeaveFrame(String userName, String user, String password, Socket socket) throws NameNotFoundException, IOException {
 		
 		this.userName = userName;
-		this.socketName = socket.getRemoteSocketAddress().toString();
 		
 		out = new PrintWriter(socket.getOutputStream());
 		

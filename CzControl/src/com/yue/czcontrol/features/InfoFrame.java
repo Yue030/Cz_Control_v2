@@ -33,7 +33,7 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 	 */
 	@Override
 	public void run() {
-		while (true) {
+		while (true) {	
 			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
 			try {

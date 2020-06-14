@@ -36,8 +36,6 @@ import com.yue.czcontrol.utils.TimeProperty;
 public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
 	private static final long serialVersionUID = 1L;
 	
-	private String socketName; 
-	
 	private PrintWriter out = null;
 	
 	MainFrame mf;
@@ -175,7 +173,7 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 					
 					if(psmt.executeUpdate() > 0) {//if get update > 0
 						JOptionPane.showMessageDialog(null, "\u522a\u9664 \u7de8\u865f[" + id + "] \u5df2\u6210\u529f");
-						message(dateFormatter.format(new Date())+ "\t" + handler + "-" + socketName + "\u70ba\u7de8\u865f [" + id + "] \u8acb\u5047 ~[console]");
+						message(dateFormatter.format(new Date())+ "\t" + handler + "\u70ba\u7de8\u865f [" + id + "] \u8acb\u5047 ~[console]");
 						isOK = true;
 					} else {
 						throw new UploadFailedException("Data is Upload failed.");
@@ -246,7 +244,6 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	 */
 	public DeleteFrame(String userName, String user, String password, Socket socket) throws NameNotFoundException, IOException {
 		this.handler = userName;
-		this.socketName = socket.getRemoteSocketAddress().toString();
 		
 		out = new PrintWriter(socket.getOutputStream());
 		

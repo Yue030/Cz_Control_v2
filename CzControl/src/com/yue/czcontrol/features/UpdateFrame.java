@@ -38,8 +38,6 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 
 	private static final long serialVersionUID = 1L;
 	
-	private String socketName; 
-	
 	private PrintWriter out = null;
 	
 	private String userName;
@@ -174,7 +172,7 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 			//Detect the data is update success or not
 			if (psmt.executeUpdate() > 0) {
 				JOptionPane.showMessageDialog(null, "\u7de8\u8f2f \u7de8\u865f[" + id + "] \u5df2\u6210\u529f");
-				message(dateFormatter.format(new Date())+ "\t" + userName + "-" + socketName + "\u5df2\u66f4\u6539 [" + id + "] \u6210\u54e1\u8cc7\u6599 ~[console]");
+				message(dateFormatter.format(new Date())+ "\t" + userName + "\u5df2\u66f4\u6539 [" + id + "] \u6210\u54e1\u8cc7\u6599 ~[console]");
 			} else {
 				throw new UploadFailedException("Data is Upload failed.");
 			}
@@ -232,8 +230,6 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	 * @throws IOException IOException
 	 */
 	public UpdateFrame(String name, String user, String password, Socket socket) throws NameNotFoundException, IOException { 
-		this.socketName = socket.getRemoteSocketAddress().toString();
-		
 		this.userName = name;
 		
 		out = new PrintWriter(socket.getOutputStream());
