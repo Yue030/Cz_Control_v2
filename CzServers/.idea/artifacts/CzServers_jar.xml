@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CzServers:jar">
+    <output-path>$USER_HOME$/Desktop/mc java-api</output-path>
+    <root id="archive" name="CzServers.jar">
+      <element id="module-output" name="CzServers" />
+    </root>
+  </artifact>
+</component>

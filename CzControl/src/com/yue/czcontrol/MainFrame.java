@@ -1,7 +1,11 @@
 package com.yue.czcontrol;
 
-import java.awt.Color;
-import java.awt.Font;
+import com.yue.czcontrol.features.*;
+import com.yue.czcontrol.listener.TimerListener;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -12,28 +16,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-
-import com.yue.czcontrol.exception.NameNotFoundException;
-import com.yue.czcontrol.features.DeleteFrame;
-import com.yue.czcontrol.features.InfoFrame;
-import com.yue.czcontrol.features.InsertFrame;
-import com.yue.czcontrol.features.LeaveFrame;
-import com.yue.czcontrol.features.MsgFrame;
-import com.yue.czcontrol.features.SelectFrame;
-import com.yue.czcontrol.features.UpdateFrame;
-import com.yue.czcontrol.utils.TimeProperty;
-
-public class MainFrame extends JFrame implements TimeProperty, Runnable {
+public class MainFrame extends JFrame{
 	
 	private Socket socket;
 	private String socketName;
@@ -41,33 +25,11 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 	private static final long serialVersionUID = 1L;
 	
 	private Connection conn = null;
-	private ResultSet rs = null;
-
-	private JPanel contentPane;
 
 	private String user = null;
 	private String password = null;
 	private String userName = null;
 	private JLabel userLabel = new JLabel("");
-	private JLabel timeLabel = new JLabel("");
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (InterruptedException e) {
-				timeLabel.setText("Error");
-				e.printStackTrace();
-			}
-		}
-
-	}
 	
 	
 	public Socket getSocket() {
@@ -81,11 +43,11 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 	public void setSocketName(Socket socket) {
 		this.socketName = socket.getRemoteSocketAddress().toString();
 	}
-	
+
 	public String getSocketName() {
 		return this.socketName;
 	}
-	
+
 	/**
 	 * Set User
 	 * 
@@ -135,16 +97,14 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 			String userList = "SELECT * FROM admin WHERE ACCOUNT= ?";
 
 			// String userList to PrepareStatement
-			PreparedStatement psmt = conn.prepareStatement(userList);
-			psmt.setString(1, user);
+			PreparedStatement psst = conn.prepareStatement(userList);
+			psst.setString(1, user);
 
-			rs = psmt.executeQuery();
+			ResultSet rs = psst.executeQuery();
 
 			// Detect data is exist or not
 			if (rs.next()) {
 				userName = rs.getString("NAME");
-			} else {
-				
 			}
 
 		} catch (SQLException e) {
@@ -172,7 +132,6 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 	 * @param socket Socket
 	 */
 	public MainFrame(Socket socket){
-		
 		this.socket = socket;
 		this.socketName = socket.getRemoteSocketAddress().toString();
 		
@@ -181,7 +140,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		setBounds(100, 100, 787, 503);
 		setResizable(false);
 		setTitle("Cz\u7BA1\u7406\u7CFB\u7D71-\u4E3B\u4ECB\u9762");
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -208,9 +167,11 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 		panel.add(userLabel);
 		
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
+		new TimerListener(timeLabel);
 		// viewPanel init
 		JPanel viewPanel = new JPanel();
 		viewPanel.setBackground(Color.LIGHT_GRAY);
@@ -223,8 +184,6 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				SelectFrame frame;
 				try {
 					frame = new SelectFrame(userName, user, password, socket);
-					Thread thread = new Thread(frame);
-					thread.start();
 					frame.setVisible(true);
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -260,8 +219,6 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				InsertFrame frame;
 				try {
 					frame = new InsertFrame(userName, user, password, socket);
-					Thread thread = new Thread(frame);
-					thread.start();
 					frame.setVisible(true);
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -298,11 +255,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				UpdateFrame frame;
 				try {
 					frame = new UpdateFrame(userName, user, password, socket);
-					Thread thread = new Thread(frame);
-					thread.start();
 					frame.setVisible(true);
-				} catch (NameNotFoundException nne) {
-					nne.printStackTrace();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -346,11 +299,11 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 					
 					try {
 						LoginFrame frame = new LoginFrame();
-						frame.setVisible(true);;
+						frame.setVisible(true);
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
-				} else {}
+				}
 			}
 		});
 
@@ -380,8 +333,6 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 			public void mouseClicked(MouseEvent e) {
 				setVisible(false);
 				InfoFrame frame = new InfoFrame(userName, user, password, socket);
-				Thread thread = new Thread(frame);
-				thread.start();
 				frame.setVisible(true);
 			}
 		});
@@ -443,11 +394,7 @@ public class MainFrame extends JFrame implements TimeProperty, Runnable {
 				DeleteFrame frame;
 				try {
 					frame = new DeleteFrame(userName, user, password, socket);
-					Thread thread = new Thread(frame);
-					thread.start();
 					frame.setVisible(true);
-				} catch (NameNotFoundException nne) {
-					nne.printStackTrace();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

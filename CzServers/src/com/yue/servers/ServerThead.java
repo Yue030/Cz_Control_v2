@@ -19,7 +19,7 @@ public class ServerThead extends Servers implements Runnable{
     /**
      * System version
      */
-    public static final String VERSION = "v2-66101";
+    public static final String VERSION = "v2-46721";
     
     /**
      * Constructor 
@@ -44,7 +44,7 @@ public class ServerThead extends Servers implements Runnable{
             	System.out.println(line);
             	String[] versionIn = line.split("~");
             	System.out.println(versionIn[0]);
-            	if(!VERSION.equals(versionIn[0].strip())) {
+            	if(!VERSION.equals(versionIn[0].trim())) {
             		out.println("shutdown");
             		out.flush();
             		sockets.remove(socket);
@@ -98,11 +98,11 @@ public class ServerThead extends Servers implements Runnable{
     }
     /**
      * Message to all socket
-     * @param msg
-     * @throws IOException
+     * @param msg Message
+     * @throws IOException IOException
      */
     private void print(String msg) throws IOException {
-        PrintWriter out = null;
+        PrintWriter out;
         synchronized (sockets){
         	for (Socket sc : sockets){
         		out = new PrintWriter(sc.getOutputStream());
@@ -113,7 +113,7 @@ public class ServerThead extends Servers implements Runnable{
     }
     /**
      * Close the socket connect
-     * @throws IOException
+     * @throws IOException IOException
      */
     public void closeConnect() throws IOException {
     	logArea.append("IP:" + socketName + "\t\u5df2\u95dc\u9589\u7ba1\u7406\u7cfb\u7d71\n");

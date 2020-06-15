@@ -2,8 +2,6 @@ package com.yue.czcontrol.features;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -42,36 +40,27 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 	MainFrame mf;
 
 	private static final long serialVersionUID = 1L;
-	
-	private JPanel contentPane;
-	
-	private JLabel timeLabel = new JLabel("");
-	
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
+
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 	
 	private Connection conn = null;
-	private ResultSet rs = null;
-	
-	private PrintWriter out = null;
-	private BufferedReader in = null;
-	
-	private JScrollPane scrollPane = new JScrollPane();
-	private JTextArea msgArea = new JTextArea();
-	private JFormattedTextField msgInput = new JFormattedTextField();
-	private JButton msgBtm = new JButton("\u50B3\u9001");
-	private JLabel back = new JLabel("\u9EDE\u6211\u56DE\u4E3B\u9078\u55AE");
-	
+
+	private final PrintWriter out;
+	private final BufferedReader in;
+
+	private final JTextArea msgArea = new JTextArea();
+	private final JFormattedTextField msgInput = new JFormattedTextField();
+	private final JButton msgBtm = new JButton("\u50B3\u9001");
+
 	@Override
 	public void addData(String msg) throws UploadFailedException{
 		try {
     		String insert = "INSERT INTO `message`(`msg`) VALUES (?)";
-    		PreparedStatement psmt = conn.prepareStatement(insert);
-    		psmt.setString(1, msg);
+    		PreparedStatement psst = conn.prepareStatement(insert);
+    		psst.setString(1, msg);
     		
-    		if(psmt.executeUpdate() > 0) {
-    			
-    		} else {
-    			throw new UploadFailedException("Data is Upload failed.");
+    		if(psst.executeUpdate() <= 0) {
+				throw new UploadFailedException("Data is Upload failed.");
     		}
     		
     	} catch(SQLException e) {
@@ -84,8 +73,8 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		try {
     		String select = "SELECT * FROM `MESSAGE`";
     		PreparedStatement psmt = conn.prepareStatement(select);
-    		
-    		rs = psmt.executeQuery();
+
+			ResultSet rs = psmt.executeQuery();
     		
     		while(rs.next()) {
     			msgArea.append(rs.getString("msg") + "\n");
@@ -157,7 +146,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -177,6 +166,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		panel.add(title);
 				
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
@@ -189,6 +179,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		panel.add(userLabel);
 		
 		//Scrollpane init
+		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(5, 155, 763, 225);
 		contentPane.add(scrollPane);
 		
@@ -222,8 +213,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		
 		//msgBtm init
 		msgBtm.setFont(new Font("Dialog", Font.PLAIN, 20));
-		msgBtm.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		msgBtm.addActionListener(e -> {
 				String msg = msgInput.getText();
 				if(!msg.isEmpty()) {
 					clear();
@@ -235,7 +225,6 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 						ufe.printStackTrace();
 					}
 				}
-			}
 		});
 		msgBtm.addKeyListener(new KeyListener() {
 
@@ -257,6 +246,7 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 		contentPane.add(msgBtm);
 		
 		//back init
+		JLabel back = new JLabel("\u9EDE\u6211\u56DE\u4E3B\u9078\u55AE");
 		back.setForeground(Color.RED);
 		back.setFont(new Font("\u8cc7\u6599\u4e0d\u5b8c\u6574", Font.PLAIN, 20));
 		back.setBounds(368, 432, 134, 33);
@@ -268,35 +258,30 @@ public class MsgFrame extends JFrame implements TimeProperty, SocketSetting{
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});
 		contentPane.add(back);
 		
-		new Thread(new Runnable() {
-            @Override
-            public void run() {
-            	initData();
-                try {
-                    while (true){
-                    	try {
-                    		String text = in.readLine();
-                        	if(!text.isEmpty()) {
-                        		msgArea.append(text + "\n");
-                        	}
-                    	} catch(NullPointerException e) {
-                    		msgArea.append("\u4f3a\u670d\u5668\u9023\u7dda\u65bc\u6642\u6216\u662f\u4f60\u5df2\u88ab\u5f37\u5236\u65b7\u7dda\uff0c\u8acb\u7a0d\u5f8c\u518d\u91cd\u958b\u6b64\u4ecb\u9762");
-                    		msgBtm.setEnabled(false);
-                    		msgInput.setEnabled(false);
-                    		break;
-                    	}
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+		new Thread(() -> {
+			initData();
+			try {
+				while (true){
+					try {
+						String text = in.readLine();
+						if(!text.isEmpty()) {
+							msgArea.append(text + "\n");
+						}
+					} catch(NullPointerException e) {
+						msgArea.append("\u4f3a\u670d\u5668\u9023\u7dda\u65bc\u6642\u6216\u662f\u4f60\u5df2\u88ab\u5f37\u5236\u65b7\u7dda\uff0c\u8acb\u7a0d\u5f8c\u518d\u91cd\u958b\u6b64\u4ecb\u9762");
+						msgBtm.setEnabled(false);
+						msgInput.setEnabled(false);
+						break;
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 }

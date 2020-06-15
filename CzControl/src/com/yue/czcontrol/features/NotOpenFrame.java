@@ -18,8 +18,6 @@ import com.yue.czcontrol.MainFrame;
 public class NotOpenFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
-	
-	private JPanel contentPane;
 
 	/**
 	 * Create a Frame
@@ -33,7 +31,7 @@ public class NotOpenFrame extends JFrame{
 		setResizable(false);		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -72,8 +70,6 @@ public class NotOpenFrame extends JFrame{
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});

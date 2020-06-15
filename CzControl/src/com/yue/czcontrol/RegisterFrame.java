@@ -3,8 +3,6 @@ package com.yue.czcontrol;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -28,16 +26,13 @@ public class RegisterFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 
-	private JPanel contentPane;
-	
 	private Connection conn = null;
-	private ResultSet rs = null;
-	
-	private JLabel error = new JLabel("");
-	private JFormattedTextField accInput = new JFormattedTextField();
-	private JFormattedTextField pasInput = new JFormattedTextField();
-	private JFormattedTextField nameInput = new JFormattedTextField();
-	private JFormattedTextField conPasInput = new JFormattedTextField();
+
+	private final JLabel error = new JLabel("");
+	private final JFormattedTextField accInput = new JFormattedTextField();
+	private final JFormattedTextField pasInput = new JFormattedTextField();
+	private final JFormattedTextField nameInput = new JFormattedTextField();
+	private final JFormattedTextField conPasInput = new JFormattedTextField();
 	
 	private boolean isOK;
 	
@@ -54,15 +49,11 @@ public class RegisterFrame extends JFrame{
 			//String accountList to PreparedStatement
 			PreparedStatement psmt = conn.prepareStatement(accountList);
 			psmt.setString(1, account);
-			
-			rs = psmt.executeQuery();
+
+			ResultSet rs = psmt.executeQuery();
 
 			//Detect the data is exist or not
-			if (rs.next()) {
-				return true;
-			} else {
-				return false;
-			}
+			return rs.next();
 
 		} catch (SQLException e) {
 			this.error.setText("\u8cc7\u6599\u5eab\u4e0d\u5b58\u5728");
@@ -130,7 +121,7 @@ public class RegisterFrame extends JFrame{
 		setBounds(100, 100, 683, 503);
 		setTitle("Cz\u7ba1\u7406\u7cfb\u7d71-\u8a3b\u518a");
 		setResizable(false);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -171,40 +162,38 @@ public class RegisterFrame extends JFrame{
 		
 		//RegisterBtm init
 		Button registerBtm = new Button("\u8A3B\u518A");
-		registerBtm.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				isOK = false;
-				//Get the input data
-				String name = new String(nameInput.getText());
-				String account = new String(accInput.getText());
-				String password = new String(pasInput.getText());
-				String confirmPassword = new String(conPasInput.getText());
+		registerBtm.addActionListener(e -> {
+			isOK = false;
+			//Get the input data
+			String name = nameInput.getText();
+			String account = accInput.getText();
+			String password = pasInput.getText();
+			String confirmPassword = conPasInput.getText();
 
-				//Set String regex format
-				final String regex = "[A-Za-z0-9]\\w{3,10}";
-				if (!name.isEmpty() && !account.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty()) {//Detect the input data is empty. if not, continue the method
-					if (account.matches(regex) && password.matches(regex) && confirmPassword.matches(regex)) {//Detect the input data is meets the format
-						try {
-							register(name, account, password, confirmPassword);
-						} catch (UploadFailedException ufe) {
-							error.setText("\u8a3b\u518a\u5931\u6557");
-							ufe.printStackTrace();
-						}//Register
-					} else {
-						error.setText("\u683c\u5f0f\u4e0d\u7b26\u5408(\u6700\u5c114,\u6700\u591a10\u5b57)");
-					}
-				} else {
-					error.setText("\u8cc7\u6599\u4e0d\u5b8c\u6574");
-				}
-
-				if (isOK) {
-					JOptionPane.showMessageDialog(null, "\u8a3b\u518a\u5e33\u865f\u6210\u529f");
-					setVisible(false);
+			//Set String regex format
+			final String regex = "[A-Za-z0-9]\\w{3,10}";
+			if (!name.isEmpty() && !account.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty()) {//Detect the input data is empty. if not, continue the method
+				if (account.matches(regex) && password.matches(regex) && confirmPassword.matches(regex)) {//Detect the input data is meets the format
 					try {
-						new LoginFrame().setVisible(true);
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					};
+						register(name, account, password, confirmPassword);
+					} catch (UploadFailedException ufe) {
+						error.setText("\u8a3b\u518a\u5931\u6557");
+						ufe.printStackTrace();
+					}//Register
+				} else {
+					error.setText("\u683c\u5f0f\u4e0d\u7b26\u5408(\u6700\u5c114,\u6700\u591a10\u5b57)");
+				}
+			} else {
+				error.setText("\u8cc7\u6599\u4e0d\u5b8c\u6574");
+			}
+
+			if (isOK) {
+				JOptionPane.showMessageDialog(null, "\u8a3b\u518a\u5e33\u865f\u6210\u529f");
+				setVisible(false);
+				try {
+					new LoginFrame().setVisible(true);
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
 		});

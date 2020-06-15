@@ -15,36 +15,16 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import com.yue.czcontrol.MainFrame;
+import com.yue.czcontrol.listener.TimerListener;
 import com.yue.czcontrol.utils.TimeProperty;
 import com.yue.czcontrol.utils.VersionProperty;
 
-public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, Runnable{
+public class InfoFrame extends JFrame implements VersionProperty{
 
 	private static final long serialVersionUID = 1L;
 	
 	MainFrame mf;
-	
-	private JPanel contentPane;
-	
-	private JLabel timeLabel = new JLabel("");
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {	
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
-			}
-		}
 
-	}
-	
 	@Override
 	public String getReleaseDate() {
 		return RELEASE_DATE;
@@ -64,6 +44,8 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 	 * @param socket The user's socket
 	 */
 	public InfoFrame(String userName, String user, String password, Socket socket) {
+		JLabel timeLabel = new JLabel("");
+		new TimerListener(timeLabel);
 		mf = new MainFrame(socket);
 		
 		//JFrame init
@@ -71,7 +53,7 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -115,10 +97,7 @@ public class InfoFrame extends JFrame implements TimeProperty, VersionProperty, 
 				mf.setPassword(password);
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
-				
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});

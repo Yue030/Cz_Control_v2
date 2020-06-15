@@ -1,11 +1,13 @@
 package com.yue.czcontrol.features;
 
-import java.awt.Button;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import com.yue.czcontrol.MainFrame;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -16,21 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
-
-import com.yue.czcontrol.MainFrame;
-import com.yue.czcontrol.exception.NameNotFoundException;
-
 public class LeaveFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
@@ -38,18 +25,17 @@ public class LeaveFrame extends JFrame{
 	MainFrame mf;
 	
 	private Connection conn = null;
-	private PreparedStatement psmt = null;
+	private PreparedStatement psst = null;
 	private ResultSet rs = null;
-	
-	private JPanel contentPane;
+
 	private JTable table;
-	private JScrollPane scrollPane = new JScrollPane();;
+	private final JScrollPane scrollPane = new JScrollPane();
 	
 	/**
 	 * create table without id
 	 */
 	private void createData() {
-		DefaultTableModel tableModel = null;
+		DefaultTableModel tableModel;
 		
 		if(table != null) {
 			table = null;
@@ -59,9 +45,9 @@ public class LeaveFrame extends JFrame{
 			//Get data(SQL Syntax)
 			String select = "SELECT b.id, NAME, DATE, REASON, b.HANDLER FROM `PLAYER` AS A INNER JOIN `leave` as b ON a.id = b.lid";
 			//String select to PreparedStatement
-			psmt = conn.prepareStatement(select);
+			psst = conn.prepareStatement(select);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			//Set colunm name
 			String[] columnName = {"\u7de8\u865f", "\u540d\u7a31", "\u6642\u9593" , "\u539f\u56e0" , "\u8ca0\u8cac\u4eba"};
@@ -107,16 +93,16 @@ public class LeaveFrame extends JFrame{
 			//Get data(SQL Syntax)
 			String select = "SELECT b.id, NAME, DATE, REASON, b.HANDLER FROM `PLAYER` AS A INNER JOIN `leave` as b ON a.id = b.lid WHERE a.id= ?";
 			//String select to PreparedStatement
-			psmt = conn.prepareStatement(select);
-			psmt.setString(1, aid);
+			psst = conn.prepareStatement(select);
+			psst.setString(1, aid);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			//Set colunm name
 			String[] columnName = {"\u7de8\u865f", "\u540d\u7a31", "\u6642\u9593" , "\u539f\u56e0" , "\u8ca0\u8cac\u4eba"};
 			
-			DefaultTableModel tableModel = new DefaultTableModel(columnName, 0);;
-			
+			DefaultTableModel tableModel = new DefaultTableModel(columnName, 0);
+
 			//Detect data
 			while(rs.next()) {
 				String id = rs.getString("ID");
@@ -163,7 +149,7 @@ public class LeaveFrame extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -240,24 +226,15 @@ public class LeaveFrame extends JFrame{
 		leave.setFont(new Font("\u5fae\u8edf\u6b63\u9ed1\u9ad4", Font.PLAIN, 30));
 		leave.setActionCommand("leave");
 		leave.setBounds(597, 412, 171, 63);
-		leave.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-				AddLeaveFrame frame;
-				try {
-					frame = new AddLeaveFrame(userName, user, password, socket);
-					Thread thread = new Thread(frame);
-					thread.start();
-					frame.setVisible(true);
-				} catch (NameNotFoundException nne) {
-					nne.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+		leave.addActionListener(e -> {
+			setVisible(false);
+			AddLeaveFrame frame;
+			try {
+				frame = new AddLeaveFrame(userName, user, password, socket);
+				frame.setVisible(true);
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
-			
 		});
 		contentPane.add(leave);
 		
@@ -274,8 +251,6 @@ public class LeaveFrame extends JFrame{
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});

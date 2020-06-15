@@ -1,14 +1,20 @@
 package com.yue.czcontrol.features;
 
-import java.awt.Button;
-import java.awt.Color;
-import java.awt.Dimension;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+import com.yue.czcontrol.MainFrame;
+import com.yue.czcontrol.listener.TimerListener;
+import com.yue.czcontrol.utils.SocketSetting;
+import com.yue.czcontrol.utils.TimeProperty;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,74 +24,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.ExceptionConverter;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.ColumnText;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfPageEventHelper;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.yue.czcontrol.MainFrame;
-import com.yue.czcontrol.exception.UploadFailedException;
-import com.yue.czcontrol.utils.SocketSetting;
-import com.yue.czcontrol.utils.TimeProperty;
-
-public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, Runnable{
+public class SelectFrame extends JFrame implements TimeProperty, SocketSetting{
 
 	private static final long serialVersionUID = 1L;
 	
 	private Connection conn = null;
-	private ResultSet rs = null;
-	
-	private JPanel contentPane;
+
 	private JTable table;
 	
-	private PrintWriter out = null;
+	private final PrintWriter out;
 	
 	MainFrame mf;
-	
-	private JLabel timeLabel = new JLabel("");
-	
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);;
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {	
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
-			}
-		}
 
-	}
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 	
 	@Override
-	public void addData(String msg) throws UploadFailedException {
+	public void addData(String msg) {
 		
 	}
 
@@ -110,8 +66,8 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 			String select = "SELECT * FROM player";
 			//String select to PreparedStatement
 			PreparedStatement psmt = conn.prepareStatement(select);
-			
-			rs = psmt.executeQuery();
+
+			ResultSet rs = psmt.executeQuery();
 			
 			//Define the column name
 			String[] columnName = {"\u7de8\u865f", "\u540d\u7a31", "\u8077\u4f4d" , "\u672c\u6708\u6d3b\u8e8d" , "\u8ca0\u8cac\u4eba"};
@@ -166,7 +122,7 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -218,74 +174,68 @@ public class SelectFrame extends JFrame implements TimeProperty, SocketSetting, 
 				mf.setPassword(password);
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
-				
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});
 		contentPane.add(back);
 		
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
+		new TimerListener(timeLabel);
 		
 		//Generate the PDF Btm init
 		Button generatePDF = new Button("\u751F\u6210PDF");
 		generatePDF.setBackground(new Color(0,191,255));
 		generatePDF.setActionCommand("pdf");
 		generatePDF.setBounds(200, 421, 94, 44);
-		generatePDF.addActionListener(new ActionListener() {//If get clicked Event, run the override method
-			public void actionPerformed(ActionEvent e) {
-		        try {
-		        	//Set the Font
-		        	BaseFont bfChinese = BaseFont.createFont("c:\\windows\\fonts\\kaiu.ttf", "Identity-H", BaseFont.NOT_EMBEDDED);
-		        	com.itextpdf.text.Font FontChinese = new com.itextpdf.text.Font(bfChinese, 12);
-		        	PdfPCell cell = new PdfPCell();
-		            Document doc = new Document();
-		            
-		            //Set the output path
-		            PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream("./TeamCz\u6210\u54e1\u6aa2\u8996.pdf"));
-		            TableHeader event = new TableHeader();
-		            
-		            writer.setPageEvent(event);//load the header event
-		            event.setHeader("TeamCz\u6210\u54e1\u6aa2\u8996");
-		            
-		            doc.open();
-		            PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
-		            
-		            //Write the column
-		            for (int i = 0; i < table.getColumnCount(); i++) {
-		            	cell = new PdfPCell();
-		            	cell.addElement(new Paragraph(table.getColumnName(i), FontChinese));
-		                pdfTable.addCell(cell);
-		            }
-		            
-		            //Write the data to column and row
-		            for (int rows = 0; rows < table.getRowCount(); rows++) {
-		                for (int cols = 0; cols < table.getColumnCount(); cols++) {
-		                	cell = new PdfPCell();
-		                	cell.addElement(new Paragraph(table.getModel().getValueAt(rows, cols).toString(), FontChinese));
-		                    pdfTable.addCell(cell);
-		                }
-		            }
-		            
-		            doc.add(pdfTable);
-		            doc.close();
-		            System.out.println("Column:" + table.getColumnCount());
-		            System.out.println("Rows:" + table.getRowCount());
-		            System.out.println("Done");
-		            JOptionPane.showMessageDialog(null, "pdf\u6a94\u6848\u5df2\u8f38\u51fa\u5b8c\u7562");
-		            message(dateFormatter.format(new Date())+ "\t" + name + " \u5df2\u751f\u6210\u6210\u54e1PDF\u6a94 ~[console]");
-		        } catch (DocumentException ex) {
-		            ex.printStackTrace();
-		        } catch (FileNotFoundException ex) {
-		            ex.printStackTrace();
-		        } catch (IOException e1) {
-					e1.printStackTrace();
+		//If get clicked Event, run the override method
+		generatePDF.addActionListener(e -> {
+			try {
+				//Set the Font
+				BaseFont bfChinese = BaseFont.createFont("c:\\windows\\fonts\\kaiu.ttf", "Identity-H", BaseFont.NOT_EMBEDDED);
+				com.itextpdf.text.Font FontChinese = new com.itextpdf.text.Font(bfChinese, 12);
+				PdfPCell cell;
+				Document doc = new Document();
+
+				//Set the output path
+				PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream("./TeamCz\u6210\u54e1\u6aa2\u8996.pdf"));
+				TableHeader event = new TableHeader();
+
+				writer.setPageEvent(event);//load the header event
+				event.setHeader("TeamCz\u6210\u54e1\u6aa2\u8996");
+
+				doc.open();
+				PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
+
+				//Write the column
+				for (int i = 0; i < table.getColumnCount(); i++) {
+					cell = new PdfPCell();
+					cell.addElement(new Paragraph(table.getColumnName(i), FontChinese));
+					pdfTable.addCell(cell);
 				}
+
+				//Write the data to column and row
+				for (int rows = 0; rows < table.getRowCount(); rows++) {
+					for (int cols = 0; cols < table.getColumnCount(); cols++) {
+						cell = new PdfPCell();
+						cell.addElement(new Paragraph(table.getModel().getValueAt(rows, cols).toString(), FontChinese));
+						pdfTable.addCell(cell);
+					}
+				}
+
+				doc.add(pdfTable);
+				doc.close();
+				System.out.println("Column:" + table.getColumnCount());
+				System.out.println("Rows:" + table.getRowCount());
+				System.out.println("Done");
+				JOptionPane.showMessageDialog(null, "pdf\u6a94\u6848\u5df2\u8f38\u51fa\u5b8c\u7562");
+				message(dateFormatter.format(new Date())+ "\t" + name + " \u5df2\u751f\u6210\u6210\u54e1PDF\u6a94 ~[console]");
+			} catch (DocumentException | IOException ex) {
+				ex.printStackTrace();
 			}
 		});
 		

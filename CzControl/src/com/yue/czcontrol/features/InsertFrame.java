@@ -3,8 +3,6 @@ package com.yue.czcontrol.features;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -14,7 +12,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.swing.JFormattedTextField;
@@ -27,44 +24,26 @@ import javax.swing.border.EmptyBorder;
 
 import com.yue.czcontrol.MainFrame;
 import com.yue.czcontrol.exception.UploadFailedException;
+import com.yue.czcontrol.listener.TimerListener;
 import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,Runnable{
+public class InsertFrame extends JFrame implements TimeProperty, SocketSetting{
 
 	private static final long serialVersionUID = 1L;
 	
-	private PrintWriter out;
+	private final PrintWriter out;
 	
 	MainFrame mf;
 	
 	private Connection conn = null;
-	private PreparedStatement psmt = null;
-	
-	private JPanel contentPane;
-	
-	private JFormattedTextField nameInput = new JFormattedTextField();
-	private JFormattedTextField rankInput = new JFormattedTextField();
-	private JFormattedTextField activeInput = new JFormattedTextField();
-	
-	private JLabel timeLabel = new JLabel("");
-	
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
-			}
-		}
-	}
+	private PreparedStatement psst = null;
+
+	private final JFormattedTextField nameInput = new JFormattedTextField();
+	private final JFormattedTextField rankInput = new JFormattedTextField();
+	private final JFormattedTextField activeInput = new JFormattedTextField();
+
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 	
 	/**
 	 * Add a user data to DataBase without Active
@@ -81,13 +60,13 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 			String insert = "INSERT INTO `player`(`NAME`, `RANK`, `HANDLER`) VALUES (?, ?, ?)";
 			
 			//String insert to PreparedStatement
-			psmt = conn.prepareStatement(insert);
-			psmt.setString(1, name);
-			psmt.setString(2, rank);
-			psmt.setString(3, handler);
+			psst = conn.prepareStatement(insert);
+			psst.setString(1, name);
+			psst.setString(2, rank);
+			psst.setString(3, handler);
 			
 			//Detect the data is add or not
-			if(psmt.executeUpdate() > 0) {
+			if(psst.executeUpdate() > 0) {
 				JOptionPane.showMessageDialog(null, "\u4f60\u5df2\u6210\u529f\u65b0\u589e\u4e00\u540d\u6210\u54e1");
 				nameInput.setText("");
 				rankInput.setText("");
@@ -115,14 +94,14 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 			String insert = "INSERT INTO `player`(`NAME`, `RANK`,`ACTIVE`, `HANDLER`) VALUES (?, ?, ?, ?)";
 			
 			//String insert to PreparedStatement
-			psmt = conn.prepareStatement(insert);
-			psmt.setString(1, name);
-			psmt.setString(2, rank);
-			psmt.setString(3, active);
-			psmt.setString(4, handler);
+			psst = conn.prepareStatement(insert);
+			psst.setString(1, name);
+			psst.setString(2, rank);
+			psst.setString(3, active);
+			psst.setString(4, handler);
 			
 			//Detect the data is add or not
-			if(psmt.executeUpdate() > 0) {
+			if(psst.executeUpdate() > 0) {
 				JOptionPane.showMessageDialog(null, "\u4f60\u5df2\u6210\u529f\u65b0\u589e\u4e00\u540d\u6210\u54e1");
 				message(dateFormatter.format(new Date())+ "\t" + handler + "\u65b0\u589e [" + name + "] \u6210\u54e1 ~[console]");
 				nameInput.setText("");
@@ -138,7 +117,7 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 	}
 	
 	@Override
-	public void addData(String msg) throws UploadFailedException {
+	public void addData(String msg){
 		
 	}
 
@@ -178,7 +157,7 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -207,9 +186,11 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 		panel.add(userLabel);
 		
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
+		new TimerListener(timeLabel);
 		
 		//nameLabel init
 		JLabel nameLabel = new JLabel("\u904A\u6232\u540D\u7A31:");
@@ -250,35 +231,30 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 		addBtm.setFont(new Font("\u5fae\u8edf\u6b63\u9ed1\u9ad4", Font.PLAIN, 25));
 		addBtm.setActionCommand("add\r\n");
 		addBtm.setBounds(615, 410, 158, 55);
-		addBtm.addActionListener(new ActionListener() {//If get clicked Event, run the override method
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String name = new String(nameInput.getText());
-				String rank = new String(rankInput.getText());
-				String active = activeInput.getText().isEmpty() ? null : new String(activeInput.getText());
-				//Detect name and rank is empty. if not, continue method
-				if(!name.isEmpty() && !rank.isEmpty()) {
-					//Detect active is empty or not
-					if(active == null) {
-						try {
-							insertData(name, rank, userName);
-						} catch (UploadFailedException nne) {
-							nne.printStackTrace();
-						}
-					} else {
-						try {
-							insertData(name, rank, active, userName);
-						} catch (UploadFailedException nne) {
-							nne.printStackTrace();
-						}
+		//If get clicked Event, run the override method
+		addBtm.addActionListener(e -> {
+			String name = nameInput.getText();
+			String rank = rankInput.getText();
+			String active = activeInput.getText().isEmpty() ? null : activeInput.getText();
+			//Detect name and rank is empty. if not, continue method
+			if(!name.isEmpty() && !rank.isEmpty()) {
+				//Detect active is empty or not
+				if(active == null) {
+					try {
+						insertData(name, rank, userName);
+					} catch (UploadFailedException nne) {
+						nne.printStackTrace();
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "\u8cc7\u6599\u4e0d\u5b8c\u6574");
+					try {
+						insertData(name, rank, active, userName);
+					} catch (UploadFailedException nne) {
+						nne.printStackTrace();
+					}
 				}
-				
+			} else {
+				JOptionPane.showMessageDialog(null, "\u8cc7\u6599\u4e0d\u5b8c\u6574");
 			}
-			
 		});
 		
 		contentPane.add(addBtm);
@@ -296,10 +272,7 @@ public class InsertFrame extends JFrame implements TimeProperty, SocketSetting,R
 				mf.setPassword(password);
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
-				
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});

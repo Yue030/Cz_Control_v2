@@ -3,8 +3,6 @@ package com.yue.czcontrol.features;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -15,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.swing.JComboBox;
@@ -29,51 +26,30 @@ import javax.swing.border.EmptyBorder;
 import com.yue.czcontrol.MainFrame;
 import com.yue.czcontrol.exception.NameNotFoundException;
 import com.yue.czcontrol.exception.UploadFailedException;
+import com.yue.czcontrol.listener.TimerListener;
 import com.yue.czcontrol.utils.BoxInit;
 import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
+public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting{
 	private static final long serialVersionUID = 1L;
 	
-	private PrintWriter out = null;
+	private final PrintWriter out;
 	
 	MainFrame mf;
 	
 	private Connection conn = null;
-	private PreparedStatement psmt = null;
+	private PreparedStatement psst = null;
 	private ResultSet rs = null;
 	
 	private static boolean isOK = false;
-	
-	private JPanel contentPane;
-	
-	private String handler = null;
-	
-	private JLabel timeLabel = new JLabel("");
 
-	
-	private JComboBox<String> idBox = new JComboBox<String>();
-	
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
-			}
-		}
+	private final String handler;
 
-	}
+	private final JComboBox<String> idBox = new JComboBox<>();
 	
-	
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
+
 	/**
 	 * If the member exist, return true. if not, return false
 	 * @param id Member id
@@ -85,16 +61,14 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 			String select = "SELECT * FROM player WHERE ID=?";
 			
 			//String select to PreparedStatement
-			psmt = conn.prepareStatement(select);
-			psmt.setString(1, id);
+			psst = conn.prepareStatement(select);
+			psst.setString(1, id);
 			
-			rs = psmt.executeQuery();
-			
-			if(rs.next()) {//if get data
-				return true;
-			} else {//if not get
-				return false;
-			}
+			rs = psst.executeQuery();
+
+			//if get data
+			//if not get
+			return rs.next();
 			
 		} catch(SQLException e) {
 			e.printStackTrace();
@@ -103,7 +77,7 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	}
 	
 	@Override
-	public void addData(String msg) throws UploadFailedException {
+	public void addData(String msg) {
 		
 	}
 
@@ -133,18 +107,16 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 			String select = "SELECT * FROM player WHERE ID=? AND HANDLER=?";
 			
 			//String select to PreparedStatement
-			psmt = conn.prepareStatement(select);
+			psst = conn.prepareStatement(select);
 			
-			psmt.setString(1, id);
-			psmt.setString(2, handler);
+			psst.setString(1, id);
+			psst.setString(2, handler);
 			
-			rs = psmt.executeQuery();
-			
-			if(rs.next()) {//If get data
-				return true;
-			} else {//if not
-				return false;
-			}
+			rs = psst.executeQuery();
+
+			//If get data
+			//if not
+			return rs.next();
 			
 		} catch(SQLException e) {
 			e.printStackTrace();
@@ -168,10 +140,10 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 					//Delete data (SQL Syntax)
 					String delete = "DELETE FROM `player` WHERE ID=?";
 					//String delete to PreparedStatement
-					psmt = conn.prepareStatement(delete);
-					psmt.setString(1, id);
+					psst = conn.prepareStatement(delete);
+					psst.setString(1, id);
 					
-					if(psmt.executeUpdate() > 0) {//if get update > 0
+					if(psst.executeUpdate() > 0) {//if get update > 0
 						JOptionPane.showMessageDialog(null, "\u522a\u9664 \u7de8\u865f[" + id + "] \u5df2\u6210\u529f");
 						message(dateFormatter.format(new Date())+ "\t" + handler + "\u70ba\u7de8\u865f [" + id + "] \u8acb\u5047 ~[console]");
 						isOK = true;
@@ -198,10 +170,10 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		try {
 			String select = "SELECT `NAME` FROM PLAYER WHERE HANDLER=?";
 			
-			psmt = conn.prepareStatement(select);
-			psmt.setString(1,handler);
+			psst = conn.prepareStatement(select);
+			psst.setString(1,handler);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			while(rs.next()) {
 				box.addItem(rs.getString("NAME"));
@@ -215,10 +187,10 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	public String getID(String name) throws NameNotFoundException{
 		try {
 			String select = "SELECT `ID` FROM PLAYER WHERE NAME=?";
-			psmt = conn.prepareStatement(select);
-			psmt.setString(1, name);
+			psst = conn.prepareStatement(select);
+			psst.setString(1, name);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			if(rs.next()) {
 				return rs.getString("ID");
@@ -238,11 +210,10 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	 * @param user user Account
 	 * @param password user Password
 	 * @param socket The user's socket
-	 * @throws NameNotFoundException When the NameNotFound
 	 * @throws IOException IOException
 	 * 
 	 */
-	public DeleteFrame(String userName, String user, String password, Socket socket) throws NameNotFoundException, IOException {
+	public DeleteFrame(String userName, String user, String password, Socket socket) throws IOException {
 		this.handler = userName;
 		
 		out = new PrintWriter(socket.getOutputStream());
@@ -260,7 +231,7 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -293,16 +264,11 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		contentPane.add(selectLabel);
 		
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
-		
-		//idInput init
-		/*JFormattedTextField idInput = new JFormattedTextField();
-		idInput.setHorizontalAlignment(SwingConstants.CENTER);
-		idInput.setFont(new Font("Dialog", Font.PLAIN, 50));
-		idInput.setBounds(253, 237, 436, 73);
-		contentPane.add(idInput);*/
+		new TimerListener(timeLabel);
 		
 		//deleteBtm init
 		Button deleteBtm = new Button("\u78BA\u8A8D\u522A\u9664");
@@ -310,30 +276,22 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		deleteBtm.setFont(new Font("\u5fae\u8edf\u6b63\u9ed1\u9ad4", Font.PLAIN, 30));
 		deleteBtm.setActionCommand("delete");
 		deleteBtm.setBounds(601, 413, 167, 52);
-		deleteBtm.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					String item = (String)idBox.getSelectedItem();
-					String id = getID(item);
-					deleteMember(id, userName);
-					if(isOK) {
-						setVisible(false);
-						mf.setUser(user);
-						mf.setPassword(password);
-						mf.setSocket(socket);
-						mf.setSocketName(socket);
-						mf.init();
-						Thread thread = new Thread(mf);
-						thread.start();
-						mf.setVisible(true);
-					}
-				} catch(NameNotFoundException nne) {
-					nne.printStackTrace();
-				} catch (UploadFailedException ufe) {
-					ufe.printStackTrace();
+		deleteBtm.addActionListener(e -> {
+			try {
+				String item = (String)idBox.getSelectedItem();
+				String id = getID(item);
+				deleteMember(id, userName);
+				if(isOK) {
+					setVisible(false);
+					mf.setUser(user);
+					mf.setPassword(password);
+					mf.setSocket(socket);
+					mf.setSocketName(socket);
+					mf.init();
+					mf.setVisible(true);
 				}
+			} catch(NameNotFoundException | UploadFailedException nne) {
+				nne.printStackTrace();
 			}
 		});
 		contentPane.add(deleteBtm);
@@ -351,8 +309,6 @@ public class DeleteFrame extends JFrame implements TimeProperty, BoxInit, Socket
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});

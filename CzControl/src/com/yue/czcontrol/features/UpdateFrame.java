@@ -3,8 +3,6 @@ package com.yue.czcontrol.features;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -15,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.swing.JComboBox;
@@ -30,60 +27,37 @@ import javax.swing.border.EmptyBorder;
 import com.yue.czcontrol.MainFrame;
 import com.yue.czcontrol.exception.NameNotFoundException;
 import com.yue.czcontrol.exception.UploadFailedException;
+import com.yue.czcontrol.listener.TimerListener;
 import com.yue.czcontrol.utils.BoxInit;
 import com.yue.czcontrol.utils.SocketSetting;
 import com.yue.czcontrol.utils.TimeProperty;
 
-public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting, Runnable{
+public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, SocketSetting{
 
 	private static final long serialVersionUID = 1L;
 	
-	private PrintWriter out = null;
+	private final PrintWriter out;
 	
-	private String userName;
+	private final String userName;
 	
 	MainFrame mf;
-	
-	private JPanel contentPane;
 
 	private Connection conn = null;
-	private PreparedStatement psmt = null;
+	private PreparedStatement psst = null;
 	private ResultSet rs = null;
-	
-	
-	private JLabel selectLabel = new JLabel("\u9078\u64C7:");
-	private JLabel nameLabel = new JLabel("\u540D\u7A31:");
-	private JLabel rankLabel = new JLabel("\u8077\u4F4D:");
-	private JLabel activeLabel = new JLabel("\u6D3B\u8E8D:");
-	private JLabel handler = new JLabel("\u8CA0\u8CAC\u4EBA:");
-	private JFormattedTextField nameInput = new JFormattedTextField();
-	private JFormattedTextField rankInput = new JFormattedTextField();
-	private JFormattedTextField activeInput = new JFormattedTextField();
-	private JComboBox<String> idBox = new JComboBox<String>();
-	private JLabel error = new JLabel("");
-	
-	private JLabel timeLabel = new JLabel("");
-	
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
-	
-	/**
-	 * Set timeLabel Text every second.
-	 */
-	@Override
-	public void run() {
-		while (true) {
-			timeLabel.setText("\u76ee\u524d\u6642\u9593:" + dateFormatter.format(Calendar.getInstance().getTime()));
-			try {
-				Thread.sleep(ONE_SECOND);
-			} catch (Exception e) {
-				timeLabel.setText("Error!!!");
-			}
-		}
 
-	}
+
+	private final JLabel handler = new JLabel("\u8CA0\u8CAC\u4EBA:");
+	private final JFormattedTextField nameInput = new JFormattedTextField();
+	private final JFormattedTextField rankInput = new JFormattedTextField();
+	private final JFormattedTextField activeInput = new JFormattedTextField();
+	private final JComboBox<String> idBox = new JComboBox<>();
+	private final JLabel error = new JLabel("");
+
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 	
 	@Override
-	public void addData(String msg) throws UploadFailedException {
+	public void addData(String msg){
 		
 	}
 
@@ -105,46 +79,42 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	 * @param id The arg's id
 	 */
 	private void getData(String id) {
-		if (id.strip() != null) {
-			try {
-				//Get data(SQL Syntax)
-				String select = "SELECT * FROM PLAYER WHERE ID=?";
-				
-				//String select to PrepareStatement
-				psmt = conn.prepareStatement(select);
-				psmt.setString(1, id);
-				
-				rs = psmt.executeQuery();
+		try {
+			//Get data(SQL Syntax)
+			String select = "SELECT * FROM PLAYER WHERE ID=?";
 
-				//Detect data is exist
-				if (rs.next()) {
-					this.error.setText("");
-					
-					//Get the name and more data
-					String name = rs.getString("NAME");
-					String active = rs.getString("ACTIVE");
-					String rank = rs.getString("RANK");
-					String handler = rs.getString("HANDLER");
+			//String select to PrepareStatement
+			psst = conn.prepareStatement(select);
+			psst.setString(1, id);
 
-					//Write the data to input field
-					this.nameInput.setText(name);
-					this.activeInput.setText(active);
-					this.rankInput.setText(rank);
-					this.handler.setText("\u5275\u5efa\u8005: " + handler);
-				} else {//if not
-					//delete the data in input field
-					this.nameInput.setText("");
-					this.activeInput.setText("");
-					this.rankInput.setText("");
-					this.handler.setText("\u5275\u5efa\u8005: ");
-					this.error.setText("\u7121\u6b64ID\u6210\u54e1");
-				}
+			rs = psst.executeQuery();
 
-			} catch (SQLException e) {
-				e.printStackTrace();
+			//Detect data is exist
+			if (rs.next()) {
+				this.error.setText("");
+
+				//Get the name and more data
+				String name = rs.getString("NAME");
+				String active = rs.getString("ACTIVE");
+				String rank = rs.getString("RANK");
+				String handler = rs.getString("HANDLER");
+
+				//Write the data to input field
+				this.nameInput.setText(name);
+				this.activeInput.setText(active);
+				this.rankInput.setText(rank);
+				this.handler.setText("\u5275\u5efa\u8005: " + handler);
+			} else {//if not
+				//delete the data in input field
+				this.nameInput.setText("");
+				this.activeInput.setText("");
+				this.rankInput.setText("");
+				this.handler.setText("\u5275\u5efa\u8005: ");
+				this.error.setText("\u7121\u6b64ID\u6210\u54e1");
 			}
-		} else {
-			error.setText("\u8acb\u8f38\u5165id");
+
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -162,15 +132,15 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 			//Edit the data(SQL Syntax)
 			String update = "UPDATE player SET NAME=?, `RANK`=?, ACTIVE=? WHERE ID=?";
 			//String update to PrepareStatement
-			psmt = conn.prepareStatement(update);
+			psst = conn.prepareStatement(update);
 			
-			psmt.setString(1, name);
-			psmt.setString(2, rank);
-			psmt.setString(3, active);
-			psmt.setString(4, id);
+			psst.setString(1, name);
+			psst.setString(2, rank);
+			psst.setString(3, active);
+			psst.setString(4, id);
 			
 			//Detect the data is update success or not
-			if (psmt.executeUpdate() > 0) {
+			if (psst.executeUpdate() > 0) {
 				JOptionPane.showMessageDialog(null, "\u7de8\u8f2f \u7de8\u865f[" + id + "] \u5df2\u6210\u529f");
 				message(dateFormatter.format(new Date())+ "\t" + userName + "\u5df2\u66f4\u6539 [" + id + "] \u6210\u54e1\u8cc7\u6599 ~[console]");
 			} else {
@@ -187,9 +157,9 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		try {
 			String select = "SELECT `NAME` FROM PLAYER";
 			
-			psmt = conn.prepareStatement(select);
+			psst = conn.prepareStatement(select);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			while(rs.next()) {
 				box.addItem(rs.getString("NAME"));
@@ -203,10 +173,10 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	public String getID(String name) throws NameNotFoundException{
 		try {
 			String select = "SELECT `ID` FROM PLAYER WHERE NAME=?";
-			psmt = conn.prepareStatement(select);
-			psmt.setString(1, name);
+			psst = conn.prepareStatement(select);
+			psst.setString(1, name);
 			
-			rs = psmt.executeQuery();
+			rs = psst.executeQuery();
 			
 			if(rs.next()) {
 				return rs.getString("ID");
@@ -226,10 +196,9 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 	 * @param user user Account
 	 * @param password user Password
 	 * @param socket The user's socket
-	 * @throws NameNotFoundException When the NameNotFound
 	 * @throws IOException IOException
 	 */
-	public UpdateFrame(String name, String user, String password, Socket socket) throws NameNotFoundException, IOException { 
+	public UpdateFrame(String name, String user, String password, Socket socket) throws IOException {
 		this.userName = name;
 		
 		out = new PrintWriter(socket.getOutputStream());
@@ -246,7 +215,7 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);		
 		setBounds(100, 100, 787, 503);
-		contentPane = new JPanel();
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -275,26 +244,32 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		panel.add(userLabel);
 		
 		//idLabel init
+		JLabel selectLabel = new JLabel("\u9078\u64C7:");
 		selectLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		selectLabel.setBounds(15, 155, 90, 50);
 		contentPane.add(selectLabel);
 		
 		//TimeLabel init
+		JLabel timeLabel = new JLabel("");
 		timeLabel.setFont(new Font("Dialog", Font.PLAIN, 30));
 		timeLabel.setBounds(10, 87, 484, 43);
 		panel.add(timeLabel);
+		new TimerListener(timeLabel);
 		
 		//nameLabel init
+		JLabel nameLabel = new JLabel("\u540D\u7A31:");
 		nameLabel.setFont(new Font("Dialog", Font.PLAIN, 32));
 		nameLabel.setBounds(15, 215, 90, 50);
 		contentPane.add(nameLabel);
 		
 		//rankLabel init
+		JLabel rankLabel = new JLabel("\u8077\u4F4D:");
 		rankLabel.setFont(new Font("Dialog", Font.PLAIN, 32));
 		rankLabel.setBounds(15, 275, 90, 50);
 		contentPane.add(rankLabel);
 		
 		//activeLabel init
+		JLabel activeLabel = new JLabel("\u6D3B\u8E8D:");
 		activeLabel.setFont(new Font("Dialog", Font.PLAIN, 32));
 		activeLabel.setBounds(15, 338, 90, 50);
 		contentPane.add(activeLabel);
@@ -330,31 +305,28 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		update.setFont(new Font("\u5fae\u8edf\u6b63\u9ed1\u9ad4", Font.PLAIN, 30));
 		update.setActionCommand("edit");
 		update.setBounds(570, 411, 198, 54);
-		update.addActionListener(new ActionListener() {//If get clicked Event, run the override method
+		//If get clicked Event, run the override method
+		update.addActionListener(e -> {
+			//Get the input field data
+			try {
+				String item = (String)idBox.getSelectedItem();
+				String id = getID(item);
+				String name1 = nameInput.getText();
+				String active = activeInput.getText();
+				String rank = rankInput.getText();
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//Get the input field data
-				try {
-					String item = (String)idBox.getSelectedItem();
-					String id = getID(item);
-					String name = nameInput.getText();
-					String active = activeInput.getText();
-					String rank = rankInput.getText();
-
-					//Detect data is empty or not
-					if (!id.isEmpty() && !name.isEmpty() && !active.isEmpty() && !rank.isEmpty()) {
-						updateData(id, name, active, rank);
-					} else {
-						error.setText("\u8cc7\u6599\u4e0d\u9f4a\u5168");
-					}
-				} catch (NameNotFoundException nne) {
-					JOptionPane.showMessageDialog(null, "Please refresh the window");
-					nne.printStackTrace();
-				} catch (UploadFailedException ufe) {
-					error.setText("\u7121\u6cd5\u7de8\u8f2f");
-					ufe.printStackTrace();
+				//Detect data is empty or not
+				if (!id.isEmpty() && !name1.isEmpty() && !active.isEmpty() && !rank.isEmpty()) {
+					updateData(id, name1, active, rank);
+				} else {
+					error.setText("\u8cc7\u6599\u4e0d\u9f4a\u5168");
 				}
+			} catch (NameNotFoundException nne) {
+				JOptionPane.showMessageDialog(null, "Please refresh the window");
+				nne.printStackTrace();
+			} catch (UploadFailedException ufe) {
+				error.setText("\u7121\u6cd5\u7de8\u8f2f");
+				ufe.printStackTrace();
 			}
 		});
 		contentPane.add(update);
@@ -372,10 +344,7 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 				mf.setPassword(password);
 				mf.setSocket(socket);
 				mf.setSocketName(socket);
-				
 				mf.init();
-				Thread thread = new Thread(mf);
-				thread.start();
 				mf.setVisible(true);
 			}
 		});
@@ -385,19 +354,15 @@ public class UpdateFrame extends JFrame implements TimeProperty, BoxInit, Socket
 		initBox(idBox);
 		idBox.setFont(new Font("Dialog", Font.PLAIN, 30));
 		idBox.setBounds(110, 155, 357, 54);
-		idBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					String name = (String)idBox.getSelectedItem();
-					String id = getID(name);
-					getData(id);
-				} catch (NameNotFoundException nne) {
-					JOptionPane.showMessageDialog(null, "Please refresh the window");
-					nne.printStackTrace();
-				}
+		idBox.addActionListener(e -> {
+			try {
+				String name12 = (String)idBox.getSelectedItem();
+				String id = getID(name12);
+				getData(id);
+			} catch (NameNotFoundException nne) {
+				JOptionPane.showMessageDialog(null, "Please refresh the window");
+				nne.printStackTrace();
 			}
-			
 		});
 		contentPane.add(idBox);
 	}

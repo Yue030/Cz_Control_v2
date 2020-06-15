@@ -1,24 +1,13 @@
 package com.yue.servers;
 
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.Vector;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
 
 public class Servers extends JFrame {
 	public Servers() {
@@ -41,21 +30,16 @@ public class Servers extends JFrame {
 	protected static JTextArea logArea = new JTextArea();
 	protected JLabel log = new JLabel("\u65E5\u8A8C");
 	
-	protected static List<Socket> sockets = new Vector<>();
-	protected static List<String> user = new Vector<>();
-
-	private JPanel contentPane;
+	protected static final List<Socket> sockets = new Vector<>();
 
 	public static void main(String[] args) throws IOException {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Servers frame = new Servers();
-					frame.initServersUI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		EventQueue.invokeLater(() -> {
+			try {
+				Servers frame = new Servers();
+				frame.initServersUI();
+				frame.setVisible(true);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		
@@ -83,8 +67,8 @@ public class Servers extends JFrame {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 809, 530);
-		setTitle("CzServer-v66101");
-		contentPane = new JPanel();
+		setTitle("CzServer-v46721");
+		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -118,21 +102,17 @@ public class Servers extends JFrame {
 		
 		sudoExit.setFont(new Font("Dialog", Font.PLAIN, 25));
 		sudoExit.setBounds(541, 372, 191, 62);
-		sudoExit.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				synchronized(sockets){
-					System.out.println(sockets.size());
-					for(Socket sc : sockets) {
-						try {
-							sc.close();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
+		sudoExit.addActionListener(e -> {
+			synchronized(sockets){
+				System.out.println(sockets.size());
+				for(Socket sc : sockets) {
+					try {
+						sc.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
-					sockets.clear();
 				}
+				sockets.clear();
 			}
 		});
 		contentPane.add(sudoExit);
