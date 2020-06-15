@@ -18,4 +18,4 @@ Servers為主要檔案
 
 # 下載到自己電腦 
 # git clone https://github.com/Yue030/Cz_Control_v2
-# Latest Version: v2-34293
+# Latest Version: v2-46721
